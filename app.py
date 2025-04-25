@@ -63,9 +63,31 @@ def clean_price(price_str):
     else:
         return int(price_float * 100)
 
+def clean_id(id_str, options):
+    try:
+        book_id = int(id_str)
+    except ValueError:
+        input("""
+              \n====== ID ERROR ======
+              \rThe id should be a number.
+              \rPress Enter to try again.
+              \r==========================""")
+        return
+    else:
+        if book_id in options:
+            return book_id
+        else:
+            input(f"""
+                  \n====== ID ERROR ======
+                  \rThe id {book_id} is not in the database.
+                  \rPlease choose one of the following ids: {options}
+                  \rPress Enter to try again.
+                  \r==========================""")
+            return
+
 def add_csv():
     with open('suggested_books.csv') as csvfile:
-        data= csv.reader(csvfile)
+        data = csv.reader(csvfile)
         for row in data:
             book_in_db = session.query(Book).filter(Book.title == row[0]).one_or_none()
             if book_in_db == None:
@@ -117,7 +139,28 @@ def app():
             input("\nPress Enter to return to the main menu.")
         elif choice == '3':
             # Search for Book
-            pass
+            id_options = []
+            for book in session.query(Book):
+                id_options.append(book.id)
+            
+            id_error = True
+            while id_error:
+                id_choice = input(f"""
+                    \nId Options: {id_options}
+                    \rBook id: """)
+                id_choice = clean_id(id_choice, id_options)
+                if type(id_choice) == int:
+                    id_error = False
+            the_book = session.query(Book).filter(Book.id == id_choice).first()
+            print(f"""
+                  \n====== BOOK FOUND ======
+                  \rTitle: {the_book.title}
+                  \rAuthor: {the_book.author}
+                  \rPublished Date: {the_book.published_date}
+                  \rPrice: ${the_book.price / 100}
+                  \r==========================""")
+            input("\nPress Enter to return to the main menu.")
+            
         elif choice == '4':
             # Book Analysis
             pass
